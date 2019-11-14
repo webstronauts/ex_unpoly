@@ -6,10 +6,19 @@ defmodule UnpolyTest do
 
   test "mirrors request path and method in response headers" do
     conn =
-      conn(:get, "/foo")
+      conn(:get, "https://example.com/foo")
       |> Unpoly.call(@opts)
 
-    assert ["/foo"] = get_resp_header(conn, "x-up-location")
+    assert ["https://example.com/foo"] = get_resp_header(conn, "x-up-location")
+    assert ["GET"] = get_resp_header(conn, "x-up-method")
+  end
+
+  test "respects query params when mirroring request path" do
+    conn =
+      conn(:get, "https://example.com/foo?bar=baz")
+      |> Unpoly.call(@opts)
+
+    assert ["https://example.com/foo?bar=baz"] = get_resp_header(conn, "x-up-location")
     assert ["GET"] = get_resp_header(conn, "x-up-method")
   end
 

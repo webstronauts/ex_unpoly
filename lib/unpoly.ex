@@ -132,7 +132,7 @@ defmodule Unpoly do
 
   defp echo_request_headers(conn) do
     conn
-    |> Plug.Conn.put_resp_header("x-up-location", conn.request_path)
+    |> Plug.Conn.put_resp_header("x-up-location", Plug.Conn.request_url(conn))
     |> Plug.Conn.put_resp_header("x-up-method", conn.method)
   end
 
