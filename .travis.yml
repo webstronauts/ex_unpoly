@@ -1,0 +1,10 @@
+language: elixir
+
+sudo: false
+
+otp_release: "22.0"
+elixir: "1.9"
+
+script:
+  - mix format --check-formatted
+  - mix test
