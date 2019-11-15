@@ -1,7 +1,7 @@
 defmodule Unpoly.MixProject do
   use Mix.Project
 
-  @version "1.1.0"
+  @version "1.1.1"
   @description "Plug adapter for Unpoly, the unobtrusive JavaScript framework."
 
   def project do
