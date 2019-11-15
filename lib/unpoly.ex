@@ -3,9 +3,9 @@ defmodule Unpoly do
   A Plug adapter and helpers for Unpoly, the unobtrusive JavaScript framework.
 
   ## Options
-    * `:cookie_name` - the cookie name where the request method is echoed to. Defaults to 
-    `"_up_method"`
-    * `:cookie_opts` - additional options to pass to method cookie. 
+    * `:cookie_name` - the cookie name where the request method is echoed to. Defaults to
+    `"_up_method"`.
+    * `:cookie_opts` - additional options to pass to method cookie.
     See `Plug.Conn.put_resp_cookie/4` for all available options.
   """
 
@@ -33,7 +33,7 @@ defmodule Unpoly do
   that matches this selector.
   """
   @spec target(Plug.Conn.t()) :: String.t() | nil
-  def target(conn), do: List.keyfind(conn.req_headers, "x-up-target", 0)
+  def target(conn), do: get_req_header(conn, "x-up-target")
 
   @doc """
   Returns the CSS selector for a fragment that Unpoly will update in
@@ -47,7 +47,7 @@ defmodule Unpoly do
   that matches this selector.
   """
   @spec fail_target(Plug.Conn.t()) :: String.t() | nil
-  def fail_target(conn), do: List.keyfind(conn.req_headers, "x-up-fail-target", 0)
+  def fail_target(conn), do: get_req_header(conn, "x-up-fail-target")
 
   @doc """
   Returns whether the given CSS selector is targeted by the current fragment
@@ -105,7 +105,7 @@ defmodule Unpoly do
   the validation.
   """
   @spec validate_name(Plug.Conn.t()) :: String.t() | nil
-  def validate_name(conn), do: List.keyfind(conn.req_headers, "x-up-validate", 0)
+  def validate_name(conn), do: get_req_header(conn, "x-up-validate")
 
   @doc """
   Forces Unpoly to use the given string as the document title when processing
@@ -145,6 +145,9 @@ defmodule Unpoly do
   end
 
   ## Helpers
+
+  defp get_req_header(conn, key),
+    do: Plug.Conn.get_req_header(conn, key) |> List.first()
 
   defp query_target(conn, actual_target, tested_target) do
     if up?(conn) do

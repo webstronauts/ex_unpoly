@@ -2,40 +2,80 @@ defmodule UnpolyTest do
   use ExUnit.Case
   use Plug.Test
 
-  @opts Unpoly.init([])
+  describe "target/1" do
+    test "returns selector from header" do
+      target =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-target", ".css.selector")
+        |> Unpoly.target()
 
-  test "mirrors request path and method in response headers" do
-    conn =
-      conn(:get, "https://example.com/foo")
-      |> Unpoly.call(@opts)
+      assert ".css.selector" = target
+    end
 
-    assert ["https://example.com/foo"] = get_resp_header(conn, "x-up-location")
-    assert ["GET"] = get_resp_header(conn, "x-up-method")
+    test "returns nil when header not present" do
+      target =
+        conn(:get, "/foo")
+        |> Unpoly.target()
+
+      assert is_nil(target)
+    end
+  end
+  
+  describe "fail_target/1" do
+    test "returns selector from header" do
+      target =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-fail-target", ".css.selector")
+        |> Unpoly.fail_target()
+
+      assert ".css.selector" = target
+    end
+
+    test "returns nil when header not present" do
+      target =
+        conn(:get, "/foo")
+        |> Unpoly.fail_target()
+
+      assert is_nil(target)
+    end
   end
 
-  test "respects query params when mirroring request path" do
-    conn =
-      conn(:get, "https://example.com/foo?bar=baz")
-      |> Unpoly.call(@opts)
+  describe "call/2" do
+    @opts Unpoly.init([])
 
-    assert ["https://example.com/foo?bar=baz"] = get_resp_header(conn, "x-up-location")
-    assert ["GET"] = get_resp_header(conn, "x-up-method")
-  end
+    test "mirrors request path and method in response headers" do
+      conn =
+        conn(:get, "https://example.com/foo")
+        |> Unpoly.call(@opts)
 
-  test "appends method cookie to non GET requests" do
-    conn =
-      conn(:post, "/foo")
-      |> Unpoly.call(@opts)
+      assert ["https://example.com/foo"] = get_resp_header(conn, "x-up-location")
+      assert ["GET"] = get_resp_header(conn, "x-up-method")
+    end
 
-    assert %{"_up_method" => %{value: "POST"}} = conn.resp_cookies
-  end
+    test "respects query params when mirroring request path" do
+      conn =
+        conn(:get, "https://example.com/foo?bar=baz")
+        |> Unpoly.call(@opts)
 
-  test "deletes method cookie from GET requests" do
-    conn =
-      conn(:get, "/foo")
-      |> put_req_cookie("_up_method", "POST")
-      |> Unpoly.call(@opts)
+      assert ["https://example.com/foo?bar=baz"] = get_resp_header(conn, "x-up-location")
+      assert ["GET"] = get_resp_header(conn, "x-up-method")
+    end
 
-    assert %{"_up_method" => %{max_age: 0}} = conn.resp_cookies
+    test "appends method cookie to non GET requests" do
+      conn =
+        conn(:post, "/foo")
+        |> Unpoly.call(@opts)
+
+      assert %{"_up_method" => %{value: "POST"}} = conn.resp_cookies
+    end
+
+    test "deletes method cookie from GET requests" do
+      conn =
+        conn(:get, "/foo")
+        |> put_req_cookie("_up_method", "POST")
+        |> Unpoly.call(@opts)
+
+      assert %{"_up_method" => %{max_age: 0}} = conn.resp_cookies
+    end
   end
 end
