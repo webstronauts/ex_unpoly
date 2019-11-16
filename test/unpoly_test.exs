@@ -1,5 +1,5 @@
 defmodule UnpolyTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   use Plug.Test
 
   describe "target/1" do
@@ -41,39 +41,46 @@ defmodule UnpolyTest do
   end
 
   describe "call/2" do
-    @opts Unpoly.init([])
+    def url(), do: "https://www.example.com"
+
+    def build_conn_for_path(path, method \\ :get) do
+      conn(method, path)
+      |> fetch_query_params()
+      |> put_private(:phoenix_endpoint, __MODULE__)
+      |> put_private(:phoenix_router, __MODULE__)
+    end
 
     test "mirrors request path and method in response headers" do
       conn =
-        conn(:get, "https://example.com/foo")
-        |> Unpoly.call(@opts)
+        build_conn_for_path("/foo")
+        |> Unpoly.call(Unpoly.init([]))
 
-      assert ["https://example.com/foo"] = get_resp_header(conn, "x-up-location")
+      assert ["https://www.example.com/foo"] = get_resp_header(conn, "x-up-location")
       assert ["GET"] = get_resp_header(conn, "x-up-method")
     end
 
     test "respects query params when mirroring request path" do
       conn =
-        conn(:get, "https://example.com/foo?bar=baz")
-        |> Unpoly.call(@opts)
+        build_conn_for_path("/foo?bar=baz")
+        |> Unpoly.call(Unpoly.init([]))
 
-      assert ["https://example.com/foo?bar=baz"] = get_resp_header(conn, "x-up-location")
+      assert ["https://www.example.com/foo?bar=baz"] = get_resp_header(conn, "x-up-location")
       assert ["GET"] = get_resp_header(conn, "x-up-method")
     end
 
     test "appends method cookie to non GET requests" do
       conn =
-        conn(:post, "/foo")
-        |> Unpoly.call(@opts)
+        build_conn_for_path("/foo", :post)
+        |> Unpoly.call(Unpoly.init([]))
 
       assert %{"_up_method" => %{value: "POST", http_only: false}} = conn.resp_cookies
     end
 
     test "deletes method cookie from GET requests" do
       conn =
-        conn(:get, "/foo")
+        build_conn_for_path("/foo")
         |> put_req_cookie("_up_method", "POST")
-        |> Unpoly.call(@opts)
+        |> Unpoly.call(Unpoly.init([]))
 
       assert %{"_up_method" => %{max_age: 0, http_only: false}} = conn.resp_cookies
     end
