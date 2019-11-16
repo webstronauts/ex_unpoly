@@ -120,7 +120,7 @@ defmodule Unpoly do
 
   def init(opts \\ []) do
     cookie_name = Keyword.get(opts, :cookie_name, "_up_method")
-    cookie_opts = Keyword.get(opts, :cookie_opts, [])
+    cookie_opts = Keyword.get(opts, :cookie_opts, http_only: false)
     {cookie_name, cookie_opts}
   end
 
@@ -137,10 +137,10 @@ defmodule Unpoly do
   end
 
   defp append_method_cookie(conn, cookie_name, cookie_opts) do
-    if conn.method == "GET" || up?(conn) do
-      Plug.Conn.delete_resp_cookie(conn, cookie_name, cookie_opts)
-    else
+    if conn.method != "GET" && !up?(conn) do
       Plug.Conn.put_resp_cookie(conn, cookie_name, conn.method, cookie_opts)
+    else
+      Plug.Conn.delete_resp_cookie(conn, cookie_name, cookie_opts)
     end
   end
 

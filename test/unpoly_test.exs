@@ -20,7 +20,7 @@ defmodule UnpolyTest do
       assert is_nil(target)
     end
   end
-  
+
   describe "fail_target/1" do
     test "returns selector from header" do
       target =
@@ -66,7 +66,7 @@ defmodule UnpolyTest do
         conn(:post, "/foo")
         |> Unpoly.call(@opts)
 
-      assert %{"_up_method" => %{value: "POST"}} = conn.resp_cookies
+      assert %{"_up_method" => %{value: "POST", http_only: false}} = conn.resp_cookies
     end
 
     test "deletes method cookie from GET requests" do
@@ -75,7 +75,7 @@ defmodule UnpolyTest do
         |> put_req_cookie("_up_method", "POST")
         |> Unpoly.call(@opts)
 
-      assert %{"_up_method" => %{max_age: 0}} = conn.resp_cookies
+      assert %{"_up_method" => %{max_age: 0, http_only: false}} = conn.resp_cookies
     end
   end
 end
