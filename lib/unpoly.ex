@@ -126,6 +126,7 @@ defmodule Unpoly do
 
   def call(conn, {cookie_name, cookie_opts}) do
     conn
+    |> Plug.Conn.fetch_cookies()
     |> echo_request_headers()
     |> append_method_cookie(cookie_name, cookie_opts)
   end
@@ -137,10 +138,15 @@ defmodule Unpoly do
   end
 
   defp append_method_cookie(conn, cookie_name, cookie_opts) do
-    if conn.method != "GET" && !up?(conn) do
-      Plug.Conn.put_resp_cookie(conn, cookie_name, conn.method, cookie_opts)
-    else
-      Plug.Conn.delete_resp_cookie(conn, cookie_name, cookie_opts)
+    cond do
+      conn.method != "GET" && !up?(conn) ->
+        Plug.Conn.put_resp_cookie(conn, cookie_name, conn.method, cookie_opts)
+
+      Map.has_key?(conn.req_cookies, "_up_method") ->
+        Plug.Conn.delete_resp_cookie(conn, cookie_name, cookie_opts)
+
+      true ->
+        conn
     end
   end
 
