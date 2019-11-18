@@ -2,6 +2,14 @@
 
 All notable changes to `ex_unpoly` will be documented in this file.
 
+## v1.2.0 (2019-11-18)
+
+Breaking Changes
+
+- Get current url through phoenix helper
+- Only delete cookie when actually set
+- Make sure that cookie is accessible by javascript
+
 ## v1.1.1 (2019-11-15)
 
 Bug Fixes
