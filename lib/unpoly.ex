@@ -131,10 +131,26 @@ defmodule Unpoly do
     |> append_method_cookie(cookie_name, cookie_opts)
   end
 
+  @doc """
+  Sets the value of the "x-up-location" response header.
+  """
+  @spec put_resp_location_header(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
+  def put_resp_location_header(conn, value) do
+    Plug.Conn.put_resp_header(conn, "x-up-location", value)
+  end
+
+  @doc """
+  Sets the value of the "x-up-method" response header.
+  """
+  @spec put_resp_method_header(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
+  def put_resp_method_header(conn, value) do
+    Plug.Conn.put_resp_header(conn, "x-up-method", value)
+  end
+
   defp echo_request_headers(conn) do
     conn
-    |> Plug.Conn.put_resp_header("x-up-location", Phoenix.Controller.current_url(conn))
-    |> Plug.Conn.put_resp_header("x-up-method", conn.method)
+    |> put_resp_location_header(Phoenix.Controller.current_url(conn))
+    |> put_resp_method_header(conn.method)
   end
 
   defp append_method_cookie(conn, cookie_name, cookie_opts) do
