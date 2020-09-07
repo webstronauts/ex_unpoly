@@ -55,7 +55,7 @@ defmodule UnpolyTest do
         build_conn_for_path("/foo")
         |> Unpoly.call(Unpoly.init([]))
 
-      assert ["https://www.example.com/foo"] = get_resp_header(conn, "x-up-location")
+      assert ["http://www.example.com/foo"] = get_resp_header(conn, "x-up-location")
       assert ["GET"] = get_resp_header(conn, "x-up-method")
     end
 
@@ -64,7 +64,7 @@ defmodule UnpolyTest do
         build_conn_for_path("/foo?bar=baz")
         |> Unpoly.call(Unpoly.init([]))
 
-      assert ["https://www.example.com/foo?bar=baz"] = get_resp_header(conn, "x-up-location")
+      assert ["http://www.example.com/foo?bar=baz"] = get_resp_header(conn, "x-up-location")
       assert ["GET"] = get_resp_header(conn, "x-up-method")
     end
 

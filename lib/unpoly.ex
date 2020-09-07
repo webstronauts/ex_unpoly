@@ -149,7 +149,7 @@ defmodule Unpoly do
 
   defp echo_request_headers(conn) do
     conn
-    |> put_resp_location_header(Phoenix.Controller.current_url(conn))
+    |> put_resp_location_header(Plug.Conn.request_url(conn))
     |> put_resp_method_header(conn.method)
   end
 
