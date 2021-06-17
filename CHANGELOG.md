@@ -2,7 +2,7 @@
 
 All notable changes to `ex_unpoly` will be documented in this file.
 
-## v1.3.0 (UNRELEASED)
+## v1.3.0 (2021-06-17)
 
 Features
 
