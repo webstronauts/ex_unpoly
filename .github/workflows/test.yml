@@ -9,6 +9,20 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - erlang: "23.3.1"
+            elixir: "1.11.4"
+          - erlang: "23.0"
+            elixir: "1.11.2"
+            lint: true
+          - erlang: "23.0"
+            elixir: "1.10.3"
+          - erlang: "22.3"
+            elixir: "1.9.4"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v1
@@ -16,8 +30,8 @@ jobs:
       - name: Setup Elixir
         uses: actions/setup-elixir@v1
         with:
-          otp-version: 23.0
-          elixir-version: 1.10.3
+          otp-version: ${{matrix.erlang}}
+          elixir-version: ${{matrix.elixir}}
 
       - name: Cache Mix dependencies
         uses: actions/cache@v2
@@ -30,5 +44,13 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
+      - name: Compile with --warnings-as-errors
+        if: ${{matrix.lint}}
+        run: mix compile --warnings-as-errors
+
+      - name: Check mix format
+        if: ${{matrix.lint}}
+        run: mix format --check-formatted
+
       - name: Execute tests
-        run: mix test
+        run: mix test --trace
