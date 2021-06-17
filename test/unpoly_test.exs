@@ -40,15 +40,36 @@ defmodule UnpolyTest do
     end
   end
 
+  describe "reload_from_time/1" do
+    test "returns parsed timestamp from header" do
+      timestamp =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-reload-from-time", "1608730818")
+        |> Unpoly.reload_from_time()
+
+      assert ~U[2020-12-23 13:40:18Z] = timestamp
+    end
+
+    test "returns nil when timestamp is invalid" do
+      timestamp =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-reload-from-time", "foo")
+        |> Unpoly.reload_from_time()
+
+      assert is_nil(timestamp)
+    end
+
+    test "returns nil when header is missing" do
+      timestamp =
+        conn(:get, "/foo")
+        |> Unpoly.reload_from_time()
+
+      assert is_nil(timestamp)
+    end
+  end
+
   describe "call/2" do
     def url(), do: "https://www.example.com"
-
-    def build_conn_for_path(path, method \\ :get) do
-      conn(method, path)
-      |> fetch_query_params()
-      |> put_private(:phoenix_endpoint, __MODULE__)
-      |> put_private(:phoenix_router, __MODULE__)
-    end
 
     test "mirrors request path and method in response headers" do
       conn =
@@ -84,5 +105,67 @@ defmodule UnpolyTest do
 
       assert %{"_up_method" => %{max_age: 0, http_only: false}} = conn.resp_cookies
     end
+  end
+
+  describe "put_resp_accept_layer_header/2" do
+    test "sets response header" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_accept_layer_header("foo")
+
+      assert ["foo"] = get_resp_header(conn, "x-up-accept-layer")
+
+      conn = Unpoly.put_resp_accept_layer_header(conn, %{foo: "bar"})
+      assert ["{\"foo\":\"bar\"}"] = get_resp_header(conn, "x-up-accept-layer")
+
+      conn = Unpoly.put_resp_accept_layer_header(conn, nil)
+      assert ["null"] = get_resp_header(conn, "x-up-accept-layer")
+    end
+  end
+
+  describe "put_resp_dismiss_layer_header/2" do
+    test "sets response header" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_dismiss_layer_header("foo")
+
+      assert ["foo"] = get_resp_header(conn, "x-up-dismiss-layer")
+
+      conn = Unpoly.put_resp_dismiss_layer_header(conn, %{foo: "bar"})
+      assert ["{\"foo\":\"bar\"}"] = get_resp_header(conn, "x-up-dismiss-layer")
+
+      conn = Unpoly.put_resp_dismiss_layer_header(conn, nil)
+      assert ["null"] = get_resp_header(conn, "x-up-dismiss-layer")
+    end
+  end
+
+  describe "put_resp_events_header/2" do
+    test "sets response header" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_events_header("foo")
+
+      assert ["foo"] = get_resp_header(conn, "x-up-events")
+
+      conn = Unpoly.put_resp_events_header(conn, %{foo: "bar"})
+      assert ["{\"foo\":\"bar\"}"] = get_resp_header(conn, "x-up-events")
+    end
+  end
+
+  describe "put_resp_target_header/2" do
+    test "sets response header" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_target_header("foo")
+
+      assert ["foo"] = get_resp_header(conn, "x-up-target")
+    end
+  end
+
+  def build_conn_for_path(path, method \\ :get) do
+    conn(method, path)
+    |> fetch_query_params()
+    |> put_private(:phoenix_endpoint, __MODULE__)
+    |> put_private(:phoenix_router, __MODULE__)
   end
 end

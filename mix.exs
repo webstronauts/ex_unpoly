@@ -35,7 +35,8 @@ defmodule Unpoly.MixProject do
     [
       {:ex_doc, "~> 0.15", only: :dev},
       {:phoenix, "~> 1.4"},
-      {:plug, "~> 1.8"}
+      {:plug, "~> 1.8"},
+      {:poison, "~> 3.1", only: [:dev, :test]}
     ]
   end
 
