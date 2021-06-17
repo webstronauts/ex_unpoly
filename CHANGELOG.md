@@ -2,6 +2,13 @@
 
 All notable changes to `ex_unpoly` will be documented in this file.
 
+## v1.3.0 (UNRELEASED)
+
+Features
+
+- Add support for Unpoly v2
+- Replace Travis with Github Actions
+
 ## v1.2.1 (2020-01-27)
 
 Features

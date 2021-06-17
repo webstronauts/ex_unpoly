@@ -1,6 +1,6 @@
 # ex_unpoly
 
-[![Build Status](https://img.shields.io/travis/com/webstronauts/ex_unpoly/master.svg?style=flat-square)](https://travis-ci.com/webstronauts/ex_unpoly)
+[![Build Status](https://img.shields.io/github/workflow/status/webstronauts/ex_unpoly/test.svg?style=flat-square)](https://github.com/webstronauts/ex_unpoly/actions?query=workflow%3Atest)
 [![Hex.pm](https://img.shields.io/hexpm/v/ex_unpoly.svg?style=flat-square)](https://hex.pm/packages/ex_unpoly)
 
 A Plug adapter and helpers for Unpoly, the unobtrusive JavaScript framework.
