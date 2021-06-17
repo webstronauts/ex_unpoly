@@ -18,9 +18,42 @@ defmodule Unpoly do
   @doc """
   Returns whether the current request is a [page fragment update](https://unpoly.com/up.replace)
   triggered by an Unpoly frontend.
+
+  This will eventually just check for the `X-Up-Version header`.
+  Just in case a user still has an older version of Unpoly running on the frontend,
+  we also check for the X-Up-Target header.
   """
   @spec unpoly?(Plug.Conn.t()) :: boolean()
-  def unpoly?(conn), do: target(conn) !== nil
+  def unpoly?(conn), do: version(conn) !== nil || target(conn) !== nil
+
+  @doc """
+  Returns the current Unpoly version.
+
+  The version is guaranteed to be set for all Unpoly requests.
+  """
+  @spec version(Plug.Conn.t()) :: String.t() | nil
+  def version(conn), do: get_req_header(conn, "x-up-version")
+
+  @doc """
+  Returns the mode of the targeted layer.
+
+  Server-side code is free to render different HTML for different modes. 
+  For example, you might prefer to not render a site navigation for overlays.
+  """
+  @spec mode(Plug.Conn.t()) :: String.t() | nil
+  def mode(conn), do: get_req_header(conn, "x-up-mode")
+
+  @doc """
+  Returns the mode of the layer targeted for a failed fragment update. 
+
+  A fragment update is considered failed if the server responds with 
+  a status code other than 2xx, but still renders HTML.
+
+  Server-side code is free to render different HTML for different modes. 
+  For example, you might prefer to not render a site navigation for overlays.
+  """
+  @spec fail_mode(Plug.Conn.t()) :: String.t() | nil
+  def fail_mode(conn), do: get_req_header(conn, "x-up-fail-mode")
 
   @doc """
   Returns the CSS selector for a fragment that Unpoly will update in
@@ -108,6 +141,32 @@ defmodule Unpoly do
   def validate_name(conn), do: get_req_header(conn, "x-up-validate")
 
   @doc """
+  Returns the timestamp of an existing fragment that is being reloaded.
+
+  The timestamp must be explicitely set by the user as an [up-time] attribute on the fragment. 
+  It should indicate the time when the fragment's underlying data was last changed.
+  """
+  @spec reload_from_time(Plug.Conn.t()) :: String.t() | nil
+  def reload_from_time(conn) do
+    with timestamp when is_binary(timestamp) <- get_req_header(conn, "x-up-reload-from-time"),
+         {timestamp, ""} <- Integer.parse(timestamp),
+         {:ok, datetime} <- DateTime.from_unix(timestamp) do
+      datetime
+    else
+      _ -> nil
+    end
+  end
+
+  @doc """
+  Returns the timestamp of an existing fragment that is being reloaded.
+
+  The timestamp must be explicitely set by the user as an [up-time] attribute on the fragment. 
+  It should indicate the time when the fragment's underlying data was last changed.
+  """
+  @spec reload?(Plug.Conn.t()) :: boolean()
+  def reload?(conn), do: reload_from_time(conn) !== nil
+
+  @doc """
   Forces Unpoly to use the given string as the document title when processing
   this response.
 
@@ -132,7 +191,46 @@ defmodule Unpoly do
   end
 
   @doc """
-  Sets the value of the "x-up-location" response header.
+  Sets the value of the "X-Up-Accept-Layer" response header.
+  """
+  @spec put_resp_accept_layer_header(Plug.Conn.t(), term) :: Plug.Conn.t()
+  def put_resp_accept_layer_header(conn, value) when is_binary(value) do
+    Plug.Conn.put_resp_header(conn, "x-up-accept-layer", value)
+  end
+
+  def put_resp_accept_layer_header(conn, value) do
+    value = Phoenix.json_library().encode_to_iodata!(value)
+    put_resp_accept_layer_header(conn, to_string(value))
+  end
+
+  @doc """
+  Sets the value of the "X-Up-Dismiss-Layer" response header.
+  """
+  @spec put_resp_dismiss_layer_header(Plug.Conn.t(), term) :: Plug.Conn.t()
+  def put_resp_dismiss_layer_header(conn, value) when is_binary(value) do
+    Plug.Conn.put_resp_header(conn, "x-up-dismiss-layer", value)
+  end
+
+  def put_resp_dismiss_layer_header(conn, value) do
+    value = Phoenix.json_library().encode_to_iodata!(value)
+    put_resp_dismiss_layer_header(conn, to_string(value))
+  end
+
+  @doc """
+  Sets the value of the "X-Up-Events" response header.
+  """
+  @spec put_resp_events_header(Plug.Conn.t(), term) :: Plug.Conn.t()
+  def put_resp_events_header(conn, value) when is_binary(value) do
+    Plug.Conn.put_resp_header(conn, "x-up-events", value)
+  end
+
+  def put_resp_events_header(conn, value) do
+    value = Phoenix.json_library().encode_to_iodata!(value)
+    put_resp_events_header(conn, to_string(value))
+  end
+
+  @doc """
+  Sets the value of the "X-Up-Location" response header.
   """
   @spec put_resp_location_header(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
   def put_resp_location_header(conn, value) do
@@ -140,11 +238,19 @@ defmodule Unpoly do
   end
 
   @doc """
-  Sets the value of the "x-up-method" response header.
+  Sets the value of the "X-Up-Method" response header.
   """
   @spec put_resp_method_header(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
   def put_resp_method_header(conn, value) do
     Plug.Conn.put_resp_header(conn, "x-up-method", value)
+  end
+
+  @doc """
+  Sets the value of the "X-Up-Target" response header.
+  """
+  @spec put_resp_target_header(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
+  def put_resp_target_header(conn, value) do
+    Plug.Conn.put_resp_header(conn, "x-up-target", value)
   end
 
   defp echo_request_headers(conn) do
