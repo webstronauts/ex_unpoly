@@ -206,6 +206,52 @@ defmodule UnpolyTest do
     end
   end
 
+  describe "expire_cache/2" do
+    test "expires cache for URL pattern" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.expire_cache("/notes/*")
+
+      assert ["/notes/*"] = get_resp_header(conn, "x-up-expire-cache")
+    end
+
+    test "expires all cache entries with wildcard" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.expire_cache("*")
+
+      assert ["*"] = get_resp_header(conn, "x-up-expire-cache")
+    end
+  end
+
+  describe "evict_cache/2" do
+    test "evicts cache for URL pattern" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.evict_cache("/notes/*")
+
+      assert ["/notes/*"] = get_resp_header(conn, "x-up-evict-cache")
+    end
+
+    test "evicts all cache entries with wildcard" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.evict_cache("*")
+
+      assert ["*"] = get_resp_header(conn, "x-up-evict-cache")
+    end
+  end
+
+  describe "keep_cache/1" do
+    test "prevents cache expiration" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.keep_cache()
+
+      assert ["false"] = get_resp_header(conn, "x-up-expire-cache")
+    end
+  end
+
   def build_conn_for_path(path, method \\ :get) do
     conn(method, path)
     |> fetch_query_params()

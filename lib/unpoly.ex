@@ -175,6 +175,55 @@ defmodule Unpoly do
   @spec put_title(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
   def put_title(conn, new_title), do: Plug.Conn.put_resp_header(conn, "x-up-title", new_title)
 
+  @doc """
+  Expires cache entries matching the given URL pattern.
+
+  Expired cache entries will be revalidated when accessed.
+  Use "*" to expire all cache entries.
+  Use "false" to prevent automatic cache expiration after non-GET requests.
+
+  ## Examples
+
+      Unpoly.expire_cache(conn, "/notes/*")
+      Unpoly.expire_cache(conn, "*")
+      Unpoly.expire_cache(conn, "false")
+  """
+  @spec expire_cache(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
+  def expire_cache(conn, pattern) do
+    put_resp_expire_cache_header(conn, pattern)
+  end
+
+  @doc """
+  Evicts (removes) cache entries matching the given URL pattern.
+
+  Evicted cache entries are completely removed from the cache.
+  Use "*" to evict all cache entries.
+
+  ## Examples
+
+      Unpoly.evict_cache(conn, "/notes/*")
+      Unpoly.evict_cache(conn, "*")
+  """
+  @spec evict_cache(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
+  def evict_cache(conn, pattern) do
+    put_resp_evict_cache_header(conn, pattern)
+  end
+
+  @doc """
+  Prevents automatic cache expiration after this non-GET request.
+
+  By default, Unpoly expires the entire cache after non-GET requests.
+  This helper prevents that behavior.
+
+  ## Examples
+
+      Unpoly.keep_cache(conn)
+  """
+  @spec keep_cache(Plug.Conn.t()) :: Plug.Conn.t()
+  def keep_cache(conn) do
+    put_resp_expire_cache_header(conn, "false")
+  end
+
   # Plug
 
   def init(opts \\ []) do
