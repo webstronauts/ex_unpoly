@@ -290,9 +290,18 @@ defmodule Unpoly do
   this response.
 
   This is useful when you skip rendering the `<head>` in an Unpoly request.
+
+  Note: In Unpoly 3.0+, the title value is JSON-encoded as required by the protocol.
   """
   @spec put_title(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
-  def put_title(conn, new_title), do: Plug.Conn.put_resp_header(conn, "x-up-title", new_title)
+  def put_title(conn, new_title) do
+    encoded_title =
+      new_title
+      |> Phoenix.json_library().encode_to_iodata!()
+      |> to_string()
+
+    Plug.Conn.put_resp_header(conn, "x-up-title", encoded_title)
+  end
 
   @doc """
   Expires cache entries matching the given URL pattern.
