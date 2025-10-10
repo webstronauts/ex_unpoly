@@ -349,6 +349,38 @@ defmodule Unpoly do
     put_resp_open_layer_header(conn, options)
   end
 
+  @doc """
+  Emits one or more JavaScript events on the frontend.
+
+  Events are sent via the X-Up-Events response header and will be
+  triggered on the document when the response is received.
+
+  You can pass either a single event type (string) or a map of events
+  with their properties.
+
+  ## Examples
+
+      # Emit a simple event without properties
+      Unpoly.emit_events(conn, "user:created")
+
+      # Emit an event with properties
+      Unpoly.emit_events(conn, %{"user:created" => %{id: 123, name: "Alice"}})
+
+      # Emit multiple events
+      Unpoly.emit_events(conn, %{
+        "user:created" => %{id: 123},
+        "notification:show" => %{message: "User created"}
+      })
+  """
+  @spec emit_events(Plug.Conn.t(), String.t() | map()) :: Plug.Conn.t()
+  def emit_events(conn, event_type) when is_binary(event_type) do
+    emit_events(conn, %{event_type => %{}})
+  end
+
+  def emit_events(conn, events) when is_map(events) do
+    put_resp_events_header(conn, events)
+  end
+
   # Plug
 
   def init(opts \\ []) do

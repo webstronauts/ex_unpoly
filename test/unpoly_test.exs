@@ -492,6 +492,42 @@ defmodule UnpolyTest do
     end
   end
 
+  describe "emit_events/2" do
+    test "emits simple event without properties" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.emit_events("user:created")
+
+      header = get_resp_header(conn, "x-up-events") |> List.first()
+      decoded = Poison.decode!(header)
+      assert %{"user:created" => %{}} = decoded
+    end
+
+    test "emits event with properties" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.emit_events(%{"user:created" => %{id: 123, name: "Alice"}})
+
+      header = get_resp_header(conn, "x-up-events") |> List.first()
+      decoded = Poison.decode!(header)
+      assert %{"user:created" => %{"id" => 123, "name" => "Alice"}} = decoded
+    end
+
+    test "emits multiple events" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.emit_events(%{
+          "user:created" => %{id: 123},
+          "notification:show" => %{message: "User created"}
+        })
+
+      header = get_resp_header(conn, "x-up-events") |> List.first()
+      decoded = Poison.decode!(header)
+      assert %{"user:created" => %{"id" => 123}} = decoded
+      assert %{"notification:show" => %{"message" => "User created"}} = decoded
+    end
+  end
+
   def build_conn_for_path(path, method \\ :get) do
     conn(method, path)
     |> fetch_query_params()
