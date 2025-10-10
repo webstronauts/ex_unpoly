@@ -489,6 +489,191 @@ defmodule Unpoly do
     put_resp_events_header(conn, events)
   end
 
+  @doc """
+  Sets the `ETag` response header for cache validation.
+
+  ETags are identifiers for specific versions of a resource. When a client
+  caches a fragment with an ETag, it will send it back in the `If-None-Match`
+  header when revalidating the cache.
+
+  If the ETag matches, the server can return a 304 Not Modified response
+  using `not_modified/1`.
+
+  ## Examples
+
+      Unpoly.put_etag(conn, "\"abc123\"")
+      Unpoly.put_etag(conn, "\"v2-" <> calculate_hash(content) <> "\"")
+
+  """
+  @doc since: "3.0.0"
+  @spec put_etag(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
+  def put_etag(conn, etag) do
+    Plug.Conn.put_resp_header(conn, "etag", etag)
+  end
+
+  @doc """
+  Sets the `Last-Modified` response header for cache validation.
+
+  This header indicates when the resource was last changed. When a client
+  caches a fragment with a Last-Modified timestamp, it will send it back in
+  the `If-Modified-Since` header when revalidating the cache.
+
+  If the resource hasn't changed since that time, the server can return a
+  304 Not Modified response using `not_modified/1`.
+
+  ## Examples
+
+      Unpoly.put_last_modified(conn, ~U[2024-01-15 10:30:00Z])
+      Unpoly.put_last_modified(conn, user.updated_at)
+
+  """
+  @doc since: "3.0.0"
+  @spec put_last_modified(Plug.Conn.t(), DateTime.t()) :: Plug.Conn.t()
+  def put_last_modified(conn, datetime) do
+    http_date = format_http_date(datetime)
+    Plug.Conn.put_resp_header(conn, "last-modified", http_date)
+  end
+
+  @doc """
+  Sets the `Vary` response header for cache partitioning.
+
+  The Vary header tells the cache which request headers influenced the response.
+  This is critical for proper cache partitioning in Unpoly 3.0.
+
+  You can pass either a single header name (string) or a list of header names.
+  If called multiple times, headers will be accumulated.
+
+  ## Examples
+
+      # Single header
+      Unpoly.put_vary(conn, "X-Up-Target")
+
+      # Multiple headers
+      Unpoly.put_vary(conn, ["X-Up-Target", "X-Up-Mode"])
+
+      # Common Unpoly headers
+      Unpoly.put_vary(conn, ["X-Up-Target", "X-Up-Mode", "X-Up-Context"])
+
+  """
+  @doc since: "3.0.0"
+  @spec put_vary(Plug.Conn.t(), String.t() | list(String.t())) :: Plug.Conn.t()
+  def put_vary(conn, header) when is_binary(header) do
+    put_vary(conn, [header])
+  end
+
+  def put_vary(conn, headers) when is_list(headers) do
+    # Get existing Vary header if present
+    existing = Plug.Conn.get_resp_header(conn, "vary")
+
+    # Combine with new headers
+    all_headers =
+      case existing do
+        [] -> headers
+        [existing_value] -> String.split(existing_value, ", ") ++ headers
+      end
+
+    # Remove duplicates and join
+    vary_value =
+      all_headers
+      |> Enum.uniq()
+      |> Enum.join(", ")
+
+    Plug.Conn.put_resp_header(conn, "vary", vary_value)
+  end
+
+  @doc """
+  Returns a 304 Not Modified response for cache revalidation.
+
+  This helper sets the response status to 304, sets X-Up-Target to ":none"
+  (telling Unpoly not to expect any HTML), and halts the connection.
+
+  Use this after checking conditional request headers like `If-None-Match`
+  or `If-Modified-Since` when the cached content is still valid.
+
+  ## Examples
+
+      def show(conn, %{"id" => id}) do
+        post = Posts.get_post!(id)
+        etag = "\"post-\#{post.id}-\#{post.updated_at}\""
+
+        if if_none_match(conn) == etag do
+          not_modified(conn)
+        else
+          conn
+          |> put_etag(etag)
+          |> render("show.html", post: post)
+        end
+      end
+
+  """
+  @doc since: "3.0.0"
+  @spec not_modified(Plug.Conn.t()) :: Plug.Conn.t()
+  def not_modified(conn) do
+    conn
+    |> Plug.Conn.put_status(304)
+    |> put_resp_target_header(":none")
+    |> Plug.Conn.halt()
+  end
+
+  @doc """
+  Checks if the cached content is still fresh based on conditional request headers.
+
+  This helper simplifies cache revalidation logic by checking both ETag and
+  Last-Modified conditions in one call.
+
+  Returns `true` if either:
+  - The `If-None-Match` header matches the provided `:etag`
+  - The `If-Modified-Since` header is >= the provided `:last_modified`
+
+  ## Examples
+
+      def show(conn, %{"id" => id}) do
+        post = Posts.get_post!(id)
+
+        if cache_fresh?(conn, last_modified: post.updated_at) do
+          not_modified(conn)
+        else
+          conn
+          |> put_last_modified(post.updated_at)
+          |> render("show.html", post: post)
+        end
+      end
+
+      # With ETag
+      etag = calculate_etag(content)
+      if cache_fresh?(conn, etag: etag) do
+        not_modified(conn)
+      else
+        conn
+        |> put_etag(etag)
+        |> render(content)
+      end
+
+  """
+  @doc since: "3.0.0"
+  @spec cache_fresh?(Plug.Conn.t(), keyword()) :: boolean()
+  def cache_fresh?(conn, opts) do
+    etag_matches =
+      case Keyword.get(opts, :etag) do
+        nil -> false
+        etag -> if_none_match(conn) == etag
+      end
+
+    last_modified_fresh =
+      case Keyword.get(opts, :last_modified) do
+        nil ->
+          false
+
+        last_modified ->
+          case if_modified_since(conn) do
+            nil -> false
+            since -> DateTime.compare(last_modified, since) != :gt
+          end
+      end
+
+    etag_matches || last_modified_fresh
+  end
+
   # Plug
 
   def init(opts \\ []) do
@@ -728,4 +913,35 @@ defmodule Unpoly do
   defp month_name_to_number("Nov"), do: 11
   defp month_name_to_number("Dec"), do: 12
   defp month_name_to_number(_), do: nil
+
+  # Format DateTime as HTTP date (RFC 7231)
+  # Example: "Mon, 15 Jan 2024 10:30:00 GMT"
+  defp format_http_date(datetime) do
+    datetime = DateTime.shift_zone!(datetime, "Etc/UTC")
+    day_name = day_of_week_name(Date.day_of_week(datetime))
+    month_name = number_to_month_name(datetime.month)
+
+    "#{day_name}, #{String.pad_leading(Integer.to_string(datetime.day), 2, "0")} #{month_name} #{datetime.year} #{String.pad_leading(Integer.to_string(datetime.hour), 2, "0")}:#{String.pad_leading(Integer.to_string(datetime.minute), 2, "0")}:#{String.pad_leading(Integer.to_string(datetime.second), 2, "0")} GMT"
+  end
+
+  defp day_of_week_name(1), do: "Mon"
+  defp day_of_week_name(2), do: "Tue"
+  defp day_of_week_name(3), do: "Wed"
+  defp day_of_week_name(4), do: "Thu"
+  defp day_of_week_name(5), do: "Fri"
+  defp day_of_week_name(6), do: "Sat"
+  defp day_of_week_name(7), do: "Sun"
+
+  defp number_to_month_name(1), do: "Jan"
+  defp number_to_month_name(2), do: "Feb"
+  defp number_to_month_name(3), do: "Mar"
+  defp number_to_month_name(4), do: "Apr"
+  defp number_to_month_name(5), do: "May"
+  defp number_to_month_name(6), do: "Jun"
+  defp number_to_month_name(7), do: "Jul"
+  defp number_to_month_name(8), do: "Aug"
+  defp number_to_month_name(9), do: "Sep"
+  defp number_to_month_name(10), do: "Oct"
+  defp number_to_month_name(11), do: "Nov"
+  defp number_to_month_name(12), do: "Dec"
 end
