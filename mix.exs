@@ -30,7 +30,7 @@ defmodule Unpoly.MixProject do
 
   defp deps do
     [
-      {:ex_doc, "~> 0.15", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.30", only: :dev, runtime: false},
       {:jason, "~> 1.0", only: :test},
       {:phoenix, "~> 1.7"},
       {:plug, "~> 1.8"}
