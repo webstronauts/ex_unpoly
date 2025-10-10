@@ -424,7 +424,6 @@ defmodule Unpoly do
   def call(conn, {cookie_name, cookie_opts}) do
     conn
     |> Plug.Conn.fetch_cookies()
-    |> echo_request_headers()
     |> append_method_cookie(cookie_name, cookie_opts)
   end
 
@@ -571,12 +570,6 @@ defmodule Unpoly do
   def put_resp_open_layer_header(conn, value) do
     value = Phoenix.json_library().encode_to_iodata!(value)
     put_resp_open_layer_header(conn, to_string(value))
-  end
-
-  defp echo_request_headers(conn) do
-    conn
-    |> put_resp_location_header(Phoenix.Controller.current_url(conn))
-    |> put_resp_method_header(conn.method)
   end
 
   defp append_method_cookie(conn, cookie_name, cookie_opts) do

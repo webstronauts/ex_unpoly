@@ -8,6 +8,7 @@ Breaking Changes
 
 - Require Elixir 1.14 or later.
 - Require Phoenix 1.7 or later.
+- Remove automatic echoing of X-Up-Location and X-Up-Method response headers. See #6.
 
 Features
 

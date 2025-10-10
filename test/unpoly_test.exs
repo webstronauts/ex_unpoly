@@ -240,24 +240,6 @@ defmodule UnpolyTest do
   describe "call/2" do
     def url(), do: "https://www.example.com"
 
-    test "mirrors request path and method in response headers" do
-      conn =
-        build_conn_for_path("/foo")
-        |> Unpoly.call(Unpoly.init([]))
-
-      assert ["https://www.example.com/foo"] = get_resp_header(conn, "x-up-location")
-      assert ["GET"] = get_resp_header(conn, "x-up-method")
-    end
-
-    test "respects query params when mirroring request path" do
-      conn =
-        build_conn_for_path("/foo?bar=baz")
-        |> Unpoly.call(Unpoly.init([]))
-
-      assert ["https://www.example.com/foo?bar=baz"] = get_resp_header(conn, "x-up-location")
-      assert ["GET"] = get_resp_header(conn, "x-up-method")
-    end
-
     test "appends method cookie to non GET requests" do
       conn =
         build_conn_for_path("/foo", :post)
