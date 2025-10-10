@@ -41,7 +41,7 @@ Clone the repository and run `mix test`. To generate docs, run `mix docs`.
 
 ## Credits
 
-As it's just a simple port of Ruby to Elixir. All credits should go to the Unpoly team and their [unpoly](https://github.com/unpoly/unpoly) gem.
+As it's just a simple port of Ruby to Elixir. All credits should go to the Unpoly team and their [unpoly](https://github.com/unpoly/unpoly) library.
 
 - [Robin van der Vleuten](https://github.com/robinvdvleuten)
 - [All Contributors](../../contributors)

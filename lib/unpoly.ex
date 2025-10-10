@@ -37,9 +37,10 @@ defmodule Unpoly do
   @doc """
   Returns the mode of the targeted layer.
 
-  Server-side code is free to render different HTML for different modes. 
+  Server-side code is free to render different HTML for different modes.
   For example, you might prefer to not render a site navigation for overlays.
   """
+  @doc since: "2.0.0"
   @spec mode(Plug.Conn.t()) :: String.t() | nil
   def mode(conn), do: get_req_header(conn, "x-up-mode")
 
@@ -52,6 +53,7 @@ defmodule Unpoly do
   Server-side code is free to render different HTML for different modes.
   For example, you might prefer to not render a site navigation for overlays.
   """
+  @doc since: "2.0.0"
   @spec fail_mode(Plug.Conn.t()) :: String.t() | nil
   def fail_mode(conn), do: get_req_header(conn, "x-up-fail-mode")
 
@@ -63,6 +65,7 @@ defmodule Unpoly do
 
   Returns `nil` if the header is not present.
   """
+  @doc since: "2.0.0"
   @spec origin_mode(Plug.Conn.t()) :: String.t() | nil
   def origin_mode(conn), do: get_req_header(conn, "x-up-origin-mode")
 
@@ -73,6 +76,7 @@ defmodule Unpoly do
 
   Returns an empty map if no context is present.
   """
+  @doc since: "2.0.0"
   @spec fail_context(Plug.Conn.t()) :: map()
   def fail_context(conn) do
     case get_req_header(conn, "x-up-fail-context") do
@@ -121,6 +125,7 @@ defmodule Unpoly do
       context(conn)
       # => %{"lives" => 3, "level" => 2}
   """
+  @doc since: "2.0.0"
   @spec context(Plug.Conn.t()) :: map()
   def context(conn) do
     case get_req_header(conn, "x-up-context") do
@@ -140,6 +145,7 @@ defmodule Unpoly do
       context?(conn)
       # => true (if context is present)
   """
+  @doc since: "2.0.0"
   @spec context?(Plug.Conn.t()) :: boolean()
   def context?(conn) do
     get_req_header(conn, "x-up-context") != nil
@@ -209,6 +215,7 @@ defmodule Unpoly do
       root?(conn)
       # => true
   """
+  @doc since: "2.0.0"
   @spec root?(Plug.Conn.t()) :: boolean()
   def root?(conn) do
     case mode(conn) do
@@ -232,6 +239,7 @@ defmodule Unpoly do
       overlay?(conn)
       # => true (for modes like "modal", "popup", "drawer", "cover")
   """
+  @doc since: "2.0.0"
   @spec overlay?(Plug.Conn.t()) :: boolean()
   def overlay?(conn) do
     case mode(conn) do
@@ -252,9 +260,10 @@ defmodule Unpoly do
   @doc """
   Returns the timestamp of an existing fragment that is being reloaded.
 
-  The timestamp must be explicitely set by the user as an [up-time] attribute on the fragment. 
+  The timestamp must be explicitely set by the user as an [up-time] attribute on the fragment.
   It should indicate the time when the fragment's underlying data was last changed.
   """
+  @doc since: "2.0.0"
   @spec reload_from_time(Plug.Conn.t()) :: String.t() | nil
   def reload_from_time(conn) do
     with timestamp when is_binary(timestamp) <- get_req_header(conn, "x-up-reload-from-time"),
@@ -269,9 +278,10 @@ defmodule Unpoly do
   @doc """
   Returns the timestamp of an existing fragment that is being reloaded.
 
-  The timestamp must be explicitely set by the user as an [up-time] attribute on the fragment. 
+  The timestamp must be explicitely set by the user as an [up-time] attribute on the fragment.
   It should indicate the time when the fragment's underlying data was last changed.
   """
+  @doc since: "2.0.0"
   @spec reload?(Plug.Conn.t()) :: boolean()
   def reload?(conn), do: reload_from_time(conn) !== nil
 
@@ -297,6 +307,7 @@ defmodule Unpoly do
       Unpoly.expire_cache(conn, "*")
       Unpoly.expire_cache(conn, "false")
   """
+  @doc since: "2.0.0"
   @spec expire_cache(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
   def expire_cache(conn, pattern) do
     put_resp_expire_cache_header(conn, pattern)
@@ -313,6 +324,7 @@ defmodule Unpoly do
       Unpoly.evict_cache(conn, "/notes/*")
       Unpoly.evict_cache(conn, "*")
   """
+  @doc since: "2.0.0"
   @spec evict_cache(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
   def evict_cache(conn, pattern) do
     put_resp_evict_cache_header(conn, pattern)
@@ -328,6 +340,7 @@ defmodule Unpoly do
 
       Unpoly.keep_cache(conn)
   """
+  @doc since: "2.0.0"
   @spec keep_cache(Plug.Conn.t()) :: Plug.Conn.t()
   def keep_cache(conn) do
     put_resp_expire_cache_header(conn, "false")
@@ -344,6 +357,7 @@ defmodule Unpoly do
       Unpoly.put_context(conn, %{lives: 2})
       Unpoly.put_context(conn, %{removed_key: nil})
   """
+  @doc since: "2.0.0"
   @spec put_context(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def put_context(conn, context) when is_map(context) do
     put_resp_context_header(conn, context)
@@ -360,6 +374,7 @@ defmodule Unpoly do
       Unpoly.open_layer(conn, %{mode: "modal"})
       Unpoly.open_layer(conn, %{mode: "drawer", size: "large"})
   """
+  @doc since: "2.0.0"
   @spec open_layer(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def open_layer(conn, options) when is_map(options) do
     put_resp_open_layer_header(conn, options)
@@ -388,6 +403,7 @@ defmodule Unpoly do
         "notification:show" => %{message: "User created"}
       })
   """
+  @doc since: "2.0.0"
   @spec emit_events(Plug.Conn.t(), String.t() | map()) :: Plug.Conn.t()
   def emit_events(conn, event_type) when is_binary(event_type) do
     emit_events(conn, %{event_type => %{}})
@@ -415,6 +431,7 @@ defmodule Unpoly do
   @doc """
   Sets the value of the "X-Up-Accept-Layer" response header.
   """
+  @doc since: "2.0.0"
   @spec put_resp_accept_layer_header(Plug.Conn.t(), term) :: Plug.Conn.t()
   def put_resp_accept_layer_header(conn, value) when is_binary(value) do
     Plug.Conn.put_resp_header(conn, "x-up-accept-layer", value)
@@ -428,6 +445,7 @@ defmodule Unpoly do
   @doc """
   Sets the value of the "X-Up-Dismiss-Layer" response header.
   """
+  @doc since: "2.0.0"
   @spec put_resp_dismiss_layer_header(Plug.Conn.t(), term) :: Plug.Conn.t()
   def put_resp_dismiss_layer_header(conn, value) when is_binary(value) do
     Plug.Conn.put_resp_header(conn, "x-up-dismiss-layer", value)
@@ -441,6 +459,7 @@ defmodule Unpoly do
   @doc """
   Sets the value of the "X-Up-Events" response header.
   """
+  @doc since: "2.0.0"
   @spec put_resp_events_header(Plug.Conn.t(), term) :: Plug.Conn.t()
   def put_resp_events_header(conn, value) when is_binary(value) do
     Plug.Conn.put_resp_header(conn, "x-up-events", value)
@@ -486,6 +505,7 @@ defmodule Unpoly do
       Unpoly.put_resp_evict_cache_header(conn, "/notes/*")
       Unpoly.put_resp_evict_cache_header(conn, "*")
   """
+  @doc since: "2.0.0"
   @spec put_resp_evict_cache_header(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
   def put_resp_evict_cache_header(conn, value) do
     Plug.Conn.put_resp_header(conn, "x-up-evict-cache", value)
@@ -505,6 +525,7 @@ defmodule Unpoly do
       Unpoly.put_resp_expire_cache_header(conn, "*")
       Unpoly.put_resp_expire_cache_header(conn, "false")
   """
+  @doc since: "2.0.0"
   @spec put_resp_expire_cache_header(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
   def put_resp_expire_cache_header(conn, value) do
     Plug.Conn.put_resp_header(conn, "x-up-expire-cache", value)
@@ -520,6 +541,7 @@ defmodule Unpoly do
 
       Unpoly.put_resp_context_header(conn, %{lives: 2})
   """
+  @doc since: "2.0.0"
   @spec put_resp_context_header(Plug.Conn.t(), term) :: Plug.Conn.t()
   def put_resp_context_header(conn, value) when is_binary(value) do
     Plug.Conn.put_resp_header(conn, "x-up-context", value)
@@ -540,6 +562,7 @@ defmodule Unpoly do
 
       Unpoly.put_resp_open_layer_header(conn, %{mode: "modal", size: "large"})
   """
+  @doc since: "2.0.0"
   @spec put_resp_open_layer_header(Plug.Conn.t(), term) :: Plug.Conn.t()
   def put_resp_open_layer_header(conn, value) when is_binary(value) do
     Plug.Conn.put_resp_header(conn, "x-up-open-layer", value)
