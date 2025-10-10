@@ -4,6 +4,10 @@ All notable changes to `ex_unpoly` will be documented in this file.
 
 ## Unreleased
 
+Breaking Changes
+
+- Require Elixir 1.14 or later.
+
 Features
 
 - Add X-Up-Evict-Cache and X-Up-Expire-Cache response headers for cache management.
