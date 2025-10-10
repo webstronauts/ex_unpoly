@@ -280,6 +280,58 @@ defmodule UnpolyTest do
     end
   end
 
+  describe "put_resp_context_header/2" do
+    test "sets response header with map" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_context_header(%{lives: 2})
+
+      assert ["{\"lives\":2}"] = get_resp_header(conn, "x-up-context")
+    end
+
+    test "sets response header with string" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_context_header("{\"lives\":2}")
+
+      assert ["{\"lives\":2}"] = get_resp_header(conn, "x-up-context")
+    end
+
+    test "handles nested maps" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_context_header(%{user: %{name: "Alice"}})
+
+      assert ["{\"user\":{\"name\":\"Alice\"}}"] = get_resp_header(conn, "x-up-context")
+    end
+
+    test "handles nil values for removing keys" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_context_header(%{removed_key: nil})
+
+      assert ["{\"removed_key\":null}"] = get_resp_header(conn, "x-up-context")
+    end
+  end
+
+  describe "put_context/2" do
+    test "updates context with map" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_context(%{lives: 2})
+
+      assert ["{\"lives\":2}"] = get_resp_header(conn, "x-up-context")
+    end
+
+    test "allows removing context keys with nil" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_context(%{old_key: nil})
+
+      assert ["{\"old_key\":null}"] = get_resp_header(conn, "x-up-context")
+    end
+  end
+
   def build_conn_for_path(path, method \\ :get) do
     conn(method, path)
     |> fetch_query_params()

@@ -245,6 +245,22 @@ defmodule Unpoly do
     put_resp_expire_cache_header(conn, "false")
   end
 
+  @doc """
+  Updates the layer context in the response.
+
+  The context will be merged with the existing layer context on the client.
+  To remove a context key, set its value to nil.
+
+  ## Examples
+
+      Unpoly.put_context(conn, %{lives: 2})
+      Unpoly.put_context(conn, %{removed_key: nil})
+  """
+  @spec put_context(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def put_context(conn, context) when is_map(context) do
+    put_resp_context_header(conn, context)
+  end
+
   # Plug
 
   def init(opts \\ []) do
@@ -356,6 +372,26 @@ defmodule Unpoly do
   @spec put_resp_expire_cache_header(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
   def put_resp_expire_cache_header(conn, value) do
     Plug.Conn.put_resp_header(conn, "x-up-expire-cache", value)
+  end
+
+  @doc """
+  Sets the value of the "X-Up-Context" response header.
+
+  The client will update the layer context with the given value.
+  Use this to modify the layer's context from the server side.
+
+  ## Examples
+
+      Unpoly.put_resp_context_header(conn, %{lives: 2})
+  """
+  @spec put_resp_context_header(Plug.Conn.t(), term) :: Plug.Conn.t()
+  def put_resp_context_header(conn, value) when is_binary(value) do
+    Plug.Conn.put_resp_header(conn, "x-up-context", value)
+  end
+
+  def put_resp_context_header(conn, value) do
+    value = Phoenix.json_library().encode_to_iodata!(value)
+    put_resp_context_header(conn, to_string(value))
   end
 
   defp echo_request_headers(conn) do
