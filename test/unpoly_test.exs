@@ -142,6 +142,44 @@ defmodule UnpolyTest do
     end
   end
 
+  describe "origin_mode/1" do
+    test "returns mode from header" do
+      mode =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-origin-mode", "modal")
+        |> Unpoly.origin_mode()
+
+      assert "modal" = mode
+    end
+
+    test "returns nil when header not present" do
+      mode =
+        conn(:get, "/foo")
+        |> Unpoly.origin_mode()
+
+      assert is_nil(mode)
+    end
+  end
+
+  describe "fail_context/1" do
+    test "returns context from header as map" do
+      context =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-fail-context", "{\"error\":\"validation failed\"}")
+        |> Unpoly.fail_context()
+
+      assert %{"error" => "validation failed"} = context
+    end
+
+    test "returns empty map when header not present" do
+      context =
+        conn(:get, "/foo")
+        |> Unpoly.fail_context()
+
+      assert %{} = context
+    end
+  end
+
   describe "reload_from_time/1" do
     test "returns parsed timestamp from header" do
       timestamp =

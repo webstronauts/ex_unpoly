@@ -44,16 +44,42 @@ defmodule Unpoly do
   def mode(conn), do: get_req_header(conn, "x-up-mode")
 
   @doc """
-  Returns the mode of the layer targeted for a failed fragment update. 
+  Returns the mode of the layer targeted for a failed fragment update.
 
-  A fragment update is considered failed if the server responds with 
+  A fragment update is considered failed if the server responds with
   a status code other than 2xx, but still renders HTML.
 
-  Server-side code is free to render different HTML for different modes. 
+  Server-side code is free to render different HTML for different modes.
   For example, you might prefer to not render a site navigation for overlays.
   """
   @spec fail_mode(Plug.Conn.t()) :: String.t() | nil
   def fail_mode(conn), do: get_req_header(conn, "x-up-fail-mode")
+
+  @doc """
+  Returns the mode of the layer from which the fragment update originated.
+
+  This is an experimental feature that can be used to determine the context
+  from which a request was made.
+
+  Returns `nil` if the header is not present.
+  """
+  @spec origin_mode(Plug.Conn.t()) :: String.t() | nil
+  def origin_mode(conn), do: get_req_header(conn, "x-up-origin-mode")
+
+  @doc """
+  Returns the context of the layer targeted for a failed fragment update.
+
+  This is an experimental feature for handling context in failed updates.
+
+  Returns an empty map if no context is present.
+  """
+  @spec fail_context(Plug.Conn.t()) :: map()
+  def fail_context(conn) do
+    case get_req_header(conn, "x-up-fail-context") do
+      nil -> %{}
+      json -> Phoenix.json_library().decode!(json)
+    end
+  end
 
   @doc """
   Returns the CSS selector for a fragment that Unpoly will update in
