@@ -1,7 +1,8 @@
 # ex_unpoly
 
-[![Build Status](https://img.shields.io/github/workflow/status/webstronauts/ex_unpoly/test.svg?style=flat-square)](https://github.com/webstronauts/ex_unpoly/actions?query=workflow%3Atest)
-[![Hex.pm](https://img.shields.io/hexpm/v/ex_unpoly.svg?style=flat-square)](https://hex.pm/packages/ex_unpoly)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/webstronauts/ex_unpoly/test.yml?branch=main&style=flat-square)](https://github.com/webstronauts/ex_unpoly/actions?query=workflow%3Atest)
+[![Hex.pm](https://img.shields.io/hexpm/v/unpoly.svg?style=flat-square)](https://hex.pm/packages/unpoly)
+[![Hexdocs.pm](https://img.shields.io/badge/hex-docs-blue.svg?style=flat-square)](https://hexdocs.pm/unpoly/)
 
 A Plug adapter and helpers for Unpoly, the unobtrusive JavaScript framework.
 
