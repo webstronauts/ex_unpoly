@@ -406,6 +406,54 @@ defmodule UnpolyTest do
     end
   end
 
+  describe "put_resp_open_layer_header/2" do
+    test "sets response header with layer options map" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_open_layer_header(%{mode: "modal"})
+
+      assert ["{\"mode\":\"modal\"}"] = get_resp_header(conn, "x-up-open-layer")
+    end
+
+    test "sets response header with multiple options" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_open_layer_header(%{mode: "drawer", size: "large"})
+
+      header = get_resp_header(conn, "x-up-open-layer") |> List.first()
+      decoded = Poison.decode!(header)
+      assert %{"mode" => "drawer", "size" => "large"} = decoded
+    end
+
+    test "sets response header with string" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_open_layer_header("{\"mode\":\"modal\"}")
+
+      assert ["{\"mode\":\"modal\"}"] = get_resp_header(conn, "x-up-open-layer")
+    end
+  end
+
+  describe "open_layer/2" do
+    test "opens layer with mode option" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.open_layer(%{mode: "modal"})
+
+      assert ["{\"mode\":\"modal\"}"] = get_resp_header(conn, "x-up-open-layer")
+    end
+
+    test "opens layer with multiple options" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.open_layer(%{mode: "drawer", size: "large", class: "custom"})
+
+      header = get_resp_header(conn, "x-up-open-layer") |> List.first()
+      decoded = Poison.decode!(header)
+      assert %{"mode" => "drawer", "size" => "large", "class" => "custom"} = decoded
+    end
+  end
+
   def build_conn_for_path(path, method \\ :get) do
     conn(method, path)
     |> fetch_query_params()

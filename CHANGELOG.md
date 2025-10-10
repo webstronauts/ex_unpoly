@@ -11,6 +11,7 @@ Features
 - Add context/1 helper to read layer context from X-Up-Context request header.
 - Add X-Up-Context response header and put_context/2 helper for updating layer context.
 - Add root?/1 and overlay?/1 helpers for layer detection.
+- Add X-Up-Open-Layer response header and open_layer/2 helper for forcing overlay layers.
 
 ## v1.3.0 (2021-06-17)
 

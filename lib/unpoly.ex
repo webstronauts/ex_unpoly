@@ -307,6 +307,22 @@ defmodule Unpoly do
     put_resp_context_header(conn, context)
   end
 
+  @doc """
+  Forces the response to open in a new overlay layer with the given options.
+
+  This is useful for server-side code that wants to force a response to open
+  in an overlay, even when the request was not made from an overlay.
+
+  ## Examples
+
+      Unpoly.open_layer(conn, %{mode: "modal"})
+      Unpoly.open_layer(conn, %{mode: "drawer", size: "large"})
+  """
+  @spec open_layer(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def open_layer(conn, options) when is_map(options) do
+    put_resp_open_layer_header(conn, options)
+  end
+
   # Plug
 
   def init(opts \\ []) do
@@ -438,6 +454,26 @@ defmodule Unpoly do
   def put_resp_context_header(conn, value) do
     value = Phoenix.json_library().encode_to_iodata!(value)
     put_resp_context_header(conn, to_string(value))
+  end
+
+  @doc """
+  Sets the value of the "X-Up-Open-Layer" response header.
+
+  The client will open a new overlay layer with the given options.
+  This is useful for forcing a response to open in an overlay.
+
+  ## Examples
+
+      Unpoly.put_resp_open_layer_header(conn, %{mode: "modal", size: "large"})
+  """
+  @spec put_resp_open_layer_header(Plug.Conn.t(), term) :: Plug.Conn.t()
+  def put_resp_open_layer_header(conn, value) when is_binary(value) do
+    Plug.Conn.put_resp_header(conn, "x-up-open-layer", value)
+  end
+
+  def put_resp_open_layer_header(conn, value) do
+    value = Phoenix.json_library().encode_to_iodata!(value)
+    put_resp_open_layer_header(conn, to_string(value))
   end
 
   defp echo_request_headers(conn) do
