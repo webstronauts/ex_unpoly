@@ -40,6 +40,34 @@ defmodule UnpolyTest do
     end
   end
 
+  describe "context/1" do
+    test "returns context from header as map" do
+      context =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-context", "{\"lives\":3,\"level\":2}")
+        |> Unpoly.context()
+
+      assert %{"lives" => 3, "level" => 2} = context
+    end
+
+    test "returns empty map when header not present" do
+      context =
+        conn(:get, "/foo")
+        |> Unpoly.context()
+
+      assert %{} = context
+    end
+
+    test "handles nested context data" do
+      context =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-context", "{\"user\":{\"name\":\"Alice\",\"role\":\"admin\"}}")
+        |> Unpoly.context()
+
+      assert %{"user" => %{"name" => "Alice", "role" => "admin"}} = context
+    end
+  end
+
   describe "reload_from_time/1" do
     test "returns parsed timestamp from header" do
       timestamp =

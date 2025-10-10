@@ -83,6 +83,27 @@ defmodule Unpoly do
   def fail_target(conn), do: get_req_header(conn, "x-up-fail-target")
 
   @doc """
+  Returns the context of the targeted layer as a map.
+
+  The context is sent by Unpoly in the X-Up-Context request header.
+  It contains data about the layer's state (e.g., game state, wizard step, etc.).
+
+  Returns an empty map if no context is present.
+
+  ## Examples
+
+      context(conn)
+      # => %{"lives" => 3, "level" => 2}
+  """
+  @spec context(Plug.Conn.t()) :: map()
+  def context(conn) do
+    case get_req_header(conn, "x-up-context") do
+      nil -> %{}
+      json -> Phoenix.json_library().decode!(json)
+    end
+  end
+
+  @doc """
   Returns whether the given CSS selector is targeted by the current fragment
   update in case of a successful response (200 status code).
 
