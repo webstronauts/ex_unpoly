@@ -10,6 +10,7 @@ defmodule Unpoly.MixProject do
       app: :unpoly,
       version: @version,
       elixir: "~> 1.14",
+      aliases: aliases(),
       deps: deps(),
 
       # Hex
@@ -25,6 +26,12 @@ defmodule Unpoly.MixProject do
   def application do
     [
       extra_applications: [:logger, :plug]
+    ]
+  end
+
+  def cli do
+    [
+      preferred_envs: [precommit: :test]
     ]
   end
 
@@ -50,6 +57,12 @@ defmodule Unpoly.MixProject do
       maintainers: ["Robin van der Vleuten"],
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url}
+    ]
+  end
+
+  defp aliases do
+    [
+      precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]
     ]
   end
 end
