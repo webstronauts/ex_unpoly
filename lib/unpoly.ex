@@ -490,6 +490,64 @@ defmodule Unpoly do
   end
 
   @doc """
+  Accepts the current overlay layer and closes it, optionally passing a value to the parent layer.
+
+  This is a high-level convenience helper that combines setting the X-Up-Accept-Layer
+  header and preventing rendering of HTML by setting X-Up-Target to ":none".
+
+  When called without a value (or with `nil`), it simply accepts the overlay.
+  When called with a value (string or map), that value is passed to the parent layer.
+
+  ## Examples
+
+      # Accept overlay without a value
+      Unpoly.accept_layer(conn)
+
+      # Accept overlay with a string value
+      Unpoly.accept_layer(conn, "User was created")
+
+      # Accept overlay with a structured value
+      Unpoly.accept_layer(conn, %{id: 123, name: "Alice"})
+
+  """
+  @doc since: "3.0.0"
+  @spec accept_layer(Plug.Conn.t(), term()) :: Plug.Conn.t()
+  def accept_layer(conn, value \\ nil) do
+    conn
+    |> put_resp_accept_layer_header(value)
+    |> put_resp_target_header(":none")
+  end
+
+  @doc """
+  Dismisses the current overlay layer and closes it, optionally passing a value to the parent layer.
+
+  This is a high-level convenience helper that combines setting the X-Up-Dismiss-Layer
+  header and preventing rendering of HTML by setting X-Up-Target to ":none".
+
+  When called without a value (or with `nil`), it simply dismisses the overlay.
+  When called with a value (string or map), that value is passed to the parent layer.
+
+  ## Examples
+
+      # Dismiss overlay without a value
+      Unpoly.dismiss_layer(conn)
+
+      # Dismiss overlay with a string value
+      Unpoly.dismiss_layer(conn, "Operation cancelled")
+
+      # Dismiss overlay with a structured value
+      Unpoly.dismiss_layer(conn, %{reason: "user_cancelled"})
+
+  """
+  @doc since: "3.0.0"
+  @spec dismiss_layer(Plug.Conn.t(), term()) :: Plug.Conn.t()
+  def dismiss_layer(conn, value \\ nil) do
+    conn
+    |> put_resp_dismiss_layer_header(value)
+    |> put_resp_target_header(":none")
+  end
+
+  @doc """
   Sets the `ETag` response header for cache validation.
 
   ETags are identifiers for specific versions of a resource. When a client
