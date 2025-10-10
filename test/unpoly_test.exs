@@ -829,6 +829,68 @@ defmodule UnpolyTest do
     end
   end
 
+  describe "accept_layer/2" do
+    test "accepts layer without value" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.accept_layer()
+
+      assert ["null"] = get_resp_header(conn, "x-up-accept-layer")
+      assert [":none"] = get_resp_header(conn, "x-up-target")
+    end
+
+    test "accepts layer with string value" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.accept_layer("User was created")
+
+      assert ["User was created"] = get_resp_header(conn, "x-up-accept-layer")
+      assert [":none"] = get_resp_header(conn, "x-up-target")
+    end
+
+    test "accepts layer with map value" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.accept_layer(%{id: 123, name: "Alice"})
+
+      header = get_resp_header(conn, "x-up-accept-layer") |> List.first()
+      decoded = Jason.decode!(header)
+      assert %{"id" => 123, "name" => "Alice"} = decoded
+      assert [":none"] = get_resp_header(conn, "x-up-target")
+    end
+  end
+
+  describe "dismiss_layer/2" do
+    test "dismisses layer without value" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.dismiss_layer()
+
+      assert ["null"] = get_resp_header(conn, "x-up-dismiss-layer")
+      assert [":none"] = get_resp_header(conn, "x-up-target")
+    end
+
+    test "dismisses layer with string value" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.dismiss_layer("Operation cancelled")
+
+      assert ["Operation cancelled"] = get_resp_header(conn, "x-up-dismiss-layer")
+      assert [":none"] = get_resp_header(conn, "x-up-target")
+    end
+
+    test "dismisses layer with map value" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.dismiss_layer(%{reason: "user_cancelled"})
+
+      header = get_resp_header(conn, "x-up-dismiss-layer") |> List.first()
+      decoded = Jason.decode!(header)
+      assert %{"reason" => "user_cancelled"} = decoded
+      assert [":none"] = get_resp_header(conn, "x-up-target")
+    end
+  end
+
   def build_conn_for_path(path, method \\ :get) do
     conn(method, path)
     |> fetch_query_params()
