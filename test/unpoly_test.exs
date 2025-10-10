@@ -539,6 +539,45 @@ defmodule UnpolyTest do
     end
   end
 
+  describe "put_title/2" do
+    test "sets X-Up-Title header with JSON-encoded value" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_title("My Page Title")
+
+      assert ["\"My Page Title\""] = get_resp_header(conn, "x-up-title")
+    end
+
+    test "JSON-encodes special characters" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_title("Title with \"quotes\" and \\ backslash")
+
+      header = get_resp_header(conn, "x-up-title") |> List.first()
+      # The header should be a JSON-encoded string
+      decoded = Jason.decode!(header)
+      assert "Title with \"quotes\" and \\ backslash" = decoded
+    end
+
+    test "handles Unicode characters" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_title("Título con ñ y émojis 🎉")
+
+      header = get_resp_header(conn, "x-up-title") |> List.first()
+      decoded = Jason.decode!(header)
+      assert "Título con ñ y émojis 🎉" = decoded
+    end
+
+    test "handles empty string" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_title("")
+
+      assert ["\"\""] = get_resp_header(conn, "x-up-title")
+    end
+  end
+
   def build_conn_for_path(path, method \\ :get) do
     conn(method, path)
     |> fetch_query_params()
