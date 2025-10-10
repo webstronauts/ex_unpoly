@@ -7,7 +7,7 @@ defmodule Unpoly.MixProject do
 
   def project do
     [
-      app: :ex_unpoly,
+      app: :unpoly,
       version: @version,
       elixir: "~> 1.14",
       deps: deps(),
