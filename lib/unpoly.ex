@@ -2,11 +2,106 @@ defmodule Unpoly do
   @moduledoc """
   A Plug adapter and helpers for Unpoly, the unobtrusive JavaScript framework.
 
-  ## Options
-    * `:cookie_name` - the cookie name where the request method is echoed to. Defaults to
-    `"_up_method"`.
+  This library provides server-side support for Unpoly 3.0+, enabling seamless
+  fragment updates, layer management, and cache revalidation in Phoenix applications.
+
+  ## Version Compatibility
+
+  - **3.0+**: Full support for Unpoly 3.0+ protocol
+  - **2.x**: Support for Unpoly 2.x protocol (maintained for backward compatibility)
+  - Unpoly 2.x clients remain fully supported
+
+  ## Key Features
+
+  ### Fragment Updates
+  Read request headers to optimize server responses:
+  - `target/1` - Get the CSS selector being updated
+  - `mode/1` - Get the current layer mode (root, modal, drawer, etc.)
+  - `context/1` - Access layer context data
+
+  ### Cache Revalidation (New in 3.0)
+  Unpoly 3.0 introduces sophisticated cache revalidation using standard HTTP headers:
+  - `if_modified_since/1` and `if_none_match/1` - Read conditional request headers
+  - `put_last_modified/2` and `put_etag/2` - Set cache validation headers
+  - `put_vary/2` - Specify which request headers influence the response
+  - `cache_fresh?/2` - Check if cached content is still valid
+  - `not_modified/1` - Return a 304 Not Modified response
+
+  ### Layer Management
+  Control overlay layers from the server:
+  - `accept_layer/2` - Accept and close an overlay with a value
+  - `dismiss_layer/2` - Dismiss and close an overlay with a value
+  - `open_layer/2` - Force opening a new overlay layer
+
+  ### Cache Control
+  - `expire_cache/2` - Mark cache entries for revalidation
+  - `evict_cache/2` - Remove cache entries completely
+  - `keep_cache/1` - Prevent automatic cache expiration
+
+  ## Migration from 2.x to 3.0
+
+  ### Breaking Changes
+  1. **X-Up-Title now requires JSON encoding**: The `put_title/2` function now
+     JSON-encodes the title value as required by Unpoly 3.0.
+
+  2. **Deprecated headers**: X-Up-Reload-From-Time is deprecated in favor of
+     standard Last-Modified/If-Modified-Since headers. Use the new cache
+     revalidation helpers instead.
+
+  ### New Features
+  - Full cache revalidation support with ETags and Last-Modified headers
+  - New convenience helpers: `accept_layer/2` and `dismiss_layer/2`
+  - Better cache partitioning with the `Vary` header
+
+  ## Plug Options
+
+  When using `Unpoly` as a Plug in your endpoint or router:
+
+    * `:cookie_name` - the cookie name where the request method is echoed to.
+      Defaults to `"_up_method"`.
     * `:cookie_opts` - additional options to pass to method cookie.
-    See `Plug.Conn.put_resp_cookie/4` for all available options.
+      See `Plug.Conn.put_resp_cookie/4` for all available options.
+
+  ## Example Usage
+
+      # In your controller
+      def show(conn, %{"id" => id}) do
+        post = Blog.get_post!(id)
+        etag = "\"post-\#{post.id}-\#{post.updated_at}\""
+
+        # Check if the client's cache is still fresh
+        if Unpoly.cache_fresh?(conn, etag: etag) do
+          Unpoly.not_modified(conn)
+        else
+          conn
+          |> Unpoly.put_etag(etag)
+          |> Unpoly.put_vary(["X-Up-Target", "X-Up-Mode"])
+          |> render("show.html", post: post)
+        end
+      end
+
+      # Accept an overlay layer from the server
+      def create(conn, params) do
+        case Blog.create_post(params) do
+          {:ok, post} ->
+            conn
+            |> Unpoly.accept_layer(%{id: post.id})
+            |> put_status(201)
+            |> json(%{success: true})
+
+          {:error, changeset} ->
+            conn
+            |> put_status(422)
+            |> render("new.html", changeset: changeset)
+        end
+      end
+
+  ## Learn More
+
+  - Unpoly Documentation: https://unpoly.com
+  - Unpoly 3.0 Changes: https://unpoly.com/changes/3.0.0
+  - Unpoly Protocol: https://unpoly.com/up.protocol
+  - Cache Revalidation: https://unpoly.com/caching
   """
 
   @doc """
