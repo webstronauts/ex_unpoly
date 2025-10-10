@@ -7,6 +7,7 @@ All notable changes to `ex_unpoly` will be documented in this file.
 Breaking Changes
 
 - Require Elixir 1.14 or later.
+- Require Phoenix 1.7 or later.
 
 Features
 

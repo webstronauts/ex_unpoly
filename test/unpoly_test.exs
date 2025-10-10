@@ -1,6 +1,7 @@
 defmodule UnpolyTest do
   use ExUnit.Case, async: true
-  use Plug.Test
+  import Plug.Test
+  import Plug.Conn
 
   describe "target/1" do
     test "returns selector from header" do
@@ -487,7 +488,7 @@ defmodule UnpolyTest do
         |> Unpoly.put_resp_open_layer_header(%{mode: "drawer", size: "large"})
 
       header = get_resp_header(conn, "x-up-open-layer") |> List.first()
-      decoded = Poison.decode!(header)
+      decoded = Jason.decode!(header)
       assert %{"mode" => "drawer", "size" => "large"} = decoded
     end
 
@@ -515,7 +516,7 @@ defmodule UnpolyTest do
         |> Unpoly.open_layer(%{mode: "drawer", size: "large", class: "custom"})
 
       header = get_resp_header(conn, "x-up-open-layer") |> List.first()
-      decoded = Poison.decode!(header)
+      decoded = Jason.decode!(header)
       assert %{"mode" => "drawer", "size" => "large", "class" => "custom"} = decoded
     end
   end
@@ -527,7 +528,7 @@ defmodule UnpolyTest do
         |> Unpoly.emit_events("user:created")
 
       header = get_resp_header(conn, "x-up-events") |> List.first()
-      decoded = Poison.decode!(header)
+      decoded = Jason.decode!(header)
       assert %{"user:created" => %{}} = decoded
     end
 
@@ -537,7 +538,7 @@ defmodule UnpolyTest do
         |> Unpoly.emit_events(%{"user:created" => %{id: 123, name: "Alice"}})
 
       header = get_resp_header(conn, "x-up-events") |> List.first()
-      decoded = Poison.decode!(header)
+      decoded = Jason.decode!(header)
       assert %{"user:created" => %{"id" => 123, "name" => "Alice"}} = decoded
     end
 
@@ -550,7 +551,7 @@ defmodule UnpolyTest do
         })
 
       header = get_resp_header(conn, "x-up-events") |> List.first()
-      decoded = Poison.decode!(header)
+      decoded = Jason.decode!(header)
       assert %{"user:created" => %{"id" => 123}} = decoded
       assert %{"notification:show" => %{"message" => "User created"}} = decoded
     end
