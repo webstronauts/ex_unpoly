@@ -14,6 +14,7 @@ Features
 - Add X-Up-Open-Layer response header and open_layer/2 helper for forcing overlay layers.
 - Add origin_mode/1 and fail_context/1 helpers for experimental request headers.
 - Add emit_events/2 helper for emitting JavaScript events to the frontend.
+- Add context?/1 helper for checking if layer has context.
 
 ## v1.3.0 (2021-06-17)
 

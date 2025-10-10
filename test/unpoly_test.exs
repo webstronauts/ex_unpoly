@@ -68,6 +68,34 @@ defmodule UnpolyTest do
     end
   end
 
+  describe "context?/1" do
+    test "returns true when X-Up-Context header is present" do
+      result =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-context", "{\"lives\":3}")
+        |> Unpoly.context?()
+
+      assert result == true
+    end
+
+    test "returns false when X-Up-Context header is not present" do
+      result =
+        conn(:get, "/foo")
+        |> Unpoly.context?()
+
+      assert result == false
+    end
+
+    test "returns true even with empty context object" do
+      result =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-context", "{}")
+        |> Unpoly.context?()
+
+      assert result == true
+    end
+  end
+
   describe "root?/1" do
     test "returns true when mode is root" do
       result =

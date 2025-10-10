@@ -130,6 +130,22 @@ defmodule Unpoly do
   end
 
   @doc """
+  Returns whether the current layer has context.
+
+  Returns `true` if the X-Up-Context request header is present and contains
+  context data, `false` otherwise.
+
+  ## Examples
+
+      context?(conn)
+      # => true (if context is present)
+  """
+  @spec context?(Plug.Conn.t()) :: boolean()
+  def context?(conn) do
+    get_req_header(conn, "x-up-context") != nil
+  end
+
+  @doc """
   Returns whether the given CSS selector is targeted by the current fragment
   update in case of a successful response (200 status code).
 
