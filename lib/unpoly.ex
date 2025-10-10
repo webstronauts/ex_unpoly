@@ -262,8 +262,19 @@ defmodule Unpoly do
 
   The timestamp must be explicitely set by the user as an [up-time] attribute on the fragment.
   It should indicate the time when the fragment's underlying data was last changed.
+
+  ## Deprecation Notice
+
+  This header (X-Up-Reload-From-Time) is deprecated in Unpoly 3.0.
+  Instead, use standard HTTP conditional request headers:
+  - Use `put_last_modified/2` to set the `Last-Modified` response header
+  - Use `if_modified_since/1` to check the `If-Modified-Since` request header
+  - Use `not_modified/1` to return a 304 Not Modified response
+
+  This function is kept for backward compatibility with Unpoly 2.x clients.
   """
   @doc since: "2.0.0"
+  @doc deprecated: "Use standard Last-Modified/If-Modified-Since headers instead"
   @spec reload_from_time(Plug.Conn.t()) :: String.t() | nil
   def reload_from_time(conn) do
     with timestamp when is_binary(timestamp) <- get_req_header(conn, "x-up-reload-from-time"),
@@ -276,12 +287,19 @@ defmodule Unpoly do
   end
 
   @doc """
-  Returns the timestamp of an existing fragment that is being reloaded.
+  Returns whether the current request is reloading an existing fragment.
 
-  The timestamp must be explicitely set by the user as an [up-time] attribute on the fragment.
-  It should indicate the time when the fragment's underlying data was last changed.
+  ## Deprecation Notice
+
+  This function relies on the deprecated X-Up-Reload-From-Time header.
+  In Unpoly 3.0, use standard HTTP conditional request helpers instead:
+  - Check `if_modified_since/1` for conditional requests
+  - Use `cache_fresh?/2` to determine if cached content is still valid
+
+  This function is kept for backward compatibility with Unpoly 2.x clients.
   """
   @doc since: "2.0.0"
+  @doc deprecated: "Use if_modified_since/1 or cache_fresh?/2 instead"
   @spec reload?(Plug.Conn.t()) :: boolean()
   def reload?(conn), do: reload_from_time(conn) !== nil
 
