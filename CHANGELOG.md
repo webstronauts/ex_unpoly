@@ -10,6 +10,7 @@ Features
 - Add expire_cache/2, evict_cache/2, and keep_cache/1 helper methods for cache control.
 - Add context/1 helper to read layer context from X-Up-Context request header.
 - Add X-Up-Context response header and put_context/2 helper for updating layer context.
+- Add root?/1 and overlay?/1 helpers for layer detection.
 
 ## v1.3.0 (2021-06-17)
 

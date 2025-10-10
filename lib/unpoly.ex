@@ -154,6 +154,52 @@ defmodule Unpoly do
   def validate?(conn), do: validate_name(conn) !== nil
 
   @doc """
+  Returns whether the current layer is the root layer.
+
+  The root layer is the default layer that contains the initial page content.
+  It is identified by the mode "root".
+
+  Returns `true` if the current layer is the root layer, or if the request
+  is not an Unpoly request (full page load).
+
+  ## Examples
+
+      root?(conn)
+      # => true
+  """
+  @spec root?(Plug.Conn.t()) :: boolean()
+  def root?(conn) do
+    case mode(conn) do
+      nil -> true
+      "root" -> true
+      _ -> false
+    end
+  end
+
+  @doc """
+  Returns whether the current layer is an overlay.
+
+  Overlays are layers that are stacked on top of the root layer,
+  such as modal dialogs, popups, drawers, or covers.
+
+  Returns `false` if the current layer is the root layer, or if the request
+  is not an Unpoly request (full page load).
+
+  ## Examples
+
+      overlay?(conn)
+      # => true (for modes like "modal", "popup", "drawer", "cover")
+  """
+  @spec overlay?(Plug.Conn.t()) :: boolean()
+  def overlay?(conn) do
+    case mode(conn) do
+      nil -> false
+      "root" -> false
+      _ -> true
+    end
+  end
+
+  @doc """
   If the current form submission is a [validation](https://unpoly.com/input-up-validate),
   this returns the name attribute of the form field that has triggered
   the validation.

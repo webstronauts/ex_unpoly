@@ -68,6 +68,80 @@ defmodule UnpolyTest do
     end
   end
 
+  describe "root?/1" do
+    test "returns true when mode is root" do
+      result =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-mode", "root")
+        |> Unpoly.root?()
+
+      assert result == true
+    end
+
+    test "returns true when no mode header (full page load)" do
+      result =
+        conn(:get, "/foo")
+        |> Unpoly.root?()
+
+      assert result == true
+    end
+
+    test "returns false when mode is an overlay" do
+      result =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-mode", "modal")
+        |> Unpoly.root?()
+
+      assert result == false
+    end
+  end
+
+  describe "overlay?/1" do
+    test "returns true when mode is modal" do
+      result =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-mode", "modal")
+        |> Unpoly.overlay?()
+
+      assert result == true
+    end
+
+    test "returns true when mode is popup" do
+      result =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-mode", "popup")
+        |> Unpoly.overlay?()
+
+      assert result == true
+    end
+
+    test "returns true when mode is drawer" do
+      result =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-mode", "drawer")
+        |> Unpoly.overlay?()
+
+      assert result == true
+    end
+
+    test "returns false when mode is root" do
+      result =
+        conn(:get, "/foo")
+        |> put_req_header("x-up-mode", "root")
+        |> Unpoly.overlay?()
+
+      assert result == false
+    end
+
+    test "returns false when no mode header (full page load)" do
+      result =
+        conn(:get, "/foo")
+        |> Unpoly.overlay?()
+
+      assert result == false
+    end
+  end
+
   describe "reload_from_time/1" do
     test "returns parsed timestamp from header" do
       timestamp =
