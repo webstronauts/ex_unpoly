@@ -2,6 +2,12 @@
 
 All notable changes to `ex_unpoly` will be documented in this file.
 
+## Unreleased
+
+Features
+
+- Add X-Up-Evict-Cache and X-Up-Expire-Cache response headers for cache management.
+
 ## v1.3.0 (2021-06-17)
 
 Features

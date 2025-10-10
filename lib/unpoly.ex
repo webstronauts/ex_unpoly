@@ -253,6 +253,41 @@ defmodule Unpoly do
     Plug.Conn.put_resp_header(conn, "x-up-target", value)
   end
 
+  @doc """
+  Sets the value of the "X-Up-Evict-Cache" response header.
+
+  The client will evict cached responses that match the given URL pattern.
+  Use "*" to evict all cached entries.
+
+  ## Examples
+
+      Unpoly.put_resp_evict_cache_header(conn, "/notes/*")
+      Unpoly.put_resp_evict_cache_header(conn, "*")
+  """
+  @spec put_resp_evict_cache_header(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
+  def put_resp_evict_cache_header(conn, value) do
+    Plug.Conn.put_resp_header(conn, "x-up-evict-cache", value)
+  end
+
+  @doc """
+  Sets the value of the "X-Up-Expire-Cache" response header.
+
+  The client will expire cached responses that match the given URL pattern,
+  forcing revalidation on next access.
+  Use "*" to expire all cached entries.
+  Use "false" to prevent automatic cache expiration after non-GET requests.
+
+  ## Examples
+
+      Unpoly.put_resp_expire_cache_header(conn, "/notes/*")
+      Unpoly.put_resp_expire_cache_header(conn, "*")
+      Unpoly.put_resp_expire_cache_header(conn, "false")
+  """
+  @spec put_resp_expire_cache_header(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
+  def put_resp_expire_cache_header(conn, value) do
+    Plug.Conn.put_resp_header(conn, "x-up-expire-cache", value)
+  end
+
   defp echo_request_headers(conn) do
     conn
     |> put_resp_location_header(Phoenix.Controller.current_url(conn))

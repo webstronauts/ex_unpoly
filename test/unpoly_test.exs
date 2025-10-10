@@ -162,6 +162,50 @@ defmodule UnpolyTest do
     end
   end
 
+  describe "put_resp_evict_cache_header/2" do
+    test "sets response header with URL pattern" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_evict_cache_header("/notes/*")
+
+      assert ["/notes/*"] = get_resp_header(conn, "x-up-evict-cache")
+    end
+
+    test "sets response header to evict all cache" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_evict_cache_header("*")
+
+      assert ["*"] = get_resp_header(conn, "x-up-evict-cache")
+    end
+  end
+
+  describe "put_resp_expire_cache_header/2" do
+    test "sets response header with URL pattern" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_expire_cache_header("/notes/*")
+
+      assert ["/notes/*"] = get_resp_header(conn, "x-up-expire-cache")
+    end
+
+    test "sets response header to expire all cache" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_expire_cache_header("*")
+
+      assert ["*"] = get_resp_header(conn, "x-up-expire-cache")
+    end
+
+    test "sets response header to false to prevent cache expiration" do
+      conn =
+        build_conn_for_path("/foo")
+        |> Unpoly.put_resp_expire_cache_header("false")
+
+      assert ["false"] = get_resp_header(conn, "x-up-expire-cache")
+    end
+  end
+
   def build_conn_for_path(path, method \\ :get) do
     conn(method, path)
     |> fetch_query_params()
