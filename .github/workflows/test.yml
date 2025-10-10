@@ -1,48 +1,50 @@
-name: test
+name: Test
 
 on:
+  pull_request:
   push:
-  pull_request: 
-    branches: 
+    branches:
       - main
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: Test
+    runs-on: ubuntu-22.04
+    env:
+      MIX_ENV: test
+
     strategy:
       fail-fast: false
       matrix:
         include:
-          - erlang: "23.3.1"
-            elixir: "1.11.4"
-          - erlang: "23.0"
-            elixir: "1.11.2"
-            lint: true
-          - erlang: "23.0"
-            elixir: "1.10.3"
-          - erlang: "22.3"
-            elixir: "1.9.4"
+          - elixir: 1.14.x
+            otp: 24.x
+          - elixir: 1.18.x
+            otp: 27.x
+            lint: lint
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v1
-
-      - name: Setup Elixir
-        uses: erlef/setup-beam@v1
+      - uses: actions/checkout@v5
+      - uses: erlef/setup-beam@v1
         with:
-          otp-version: ${{matrix.erlang}}
-          elixir-version: ${{matrix.elixir}}
-
-      - name: Install dependencies
-        run: mix deps.get
-
-      - name: Compile with --warnings-as-errors
-        if: ${{matrix.lint}}
-        run: mix compile --warnings-as-errors
-
-      - name: Check mix format
-        if: ${{matrix.lint}}
-        run: mix format --check-formatted
-
-      - name: Execute tests
-        run: mix test --trace
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
+      - uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-
+      - run: mix do deps.get --check-locked, deps.compile
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+      - run: mix format --check-formatted
+        if: ${{ matrix.lint }}
+      - run: mix deps.unlock --check-unused
+        if: ${{ matrix.lint }}
+      - run: mix compile --warnings-as-errors
+        if: ${{ matrix.lint }}
+      - name: Run mix test
+        run: mix test
