@@ -258,6 +258,55 @@ defmodule Unpoly do
   def validate_name(conn), do: get_req_header(conn, "x-up-validate")
 
   @doc """
+  Returns the timestamp from the `If-Modified-Since` request header.
+
+  This is part of Unpoly's cache revalidation system. When a cached fragment
+  has a `Last-Modified` timestamp, Unpoly will send it back in the
+  `If-Modified-Since` header when revalidating the cache.
+
+  If the fragment hasn't changed since this timestamp, the server can return
+  a 304 Not Modified response using `not_modified/1`.
+
+  Returns `nil` if the header is not present or cannot be parsed.
+
+  ## Examples
+
+      if_modified_since(conn)
+      # => ~U[2024-01-15 10:30:00Z]
+
+  """
+  @doc since: "3.0.0"
+  @spec if_modified_since(Plug.Conn.t()) :: DateTime.t() | nil
+  def if_modified_since(conn) do
+    case get_req_header(conn, "if-modified-since") do
+      nil -> nil
+      date_string -> parse_http_date(date_string)
+    end
+  end
+
+  @doc """
+  Returns the ETag from the `If-None-Match` request header.
+
+  This is part of Unpoly's cache revalidation system. When a cached fragment
+  has an ETag, Unpoly will send it back in the `If-None-Match` header when
+  revalidating the cache.
+
+  If the current ETag matches this value, the server can return a 304 Not
+  Modified response using `not_modified/1`.
+
+  Returns `nil` if the header is not present.
+
+  ## Examples
+
+      if_none_match(conn)
+      # => "\"abc123\""
+
+  """
+  @doc since: "3.0.0"
+  @spec if_none_match(Plug.Conn.t()) :: String.t() | nil
+  def if_none_match(conn), do: get_req_header(conn, "if-none-match")
+
+  @doc """
   Returns the timestamp of an existing fragment that is being reloaded.
 
   The timestamp must be explicitely set by the user as an [up-time] attribute on the fragment.
@@ -629,4 +678,54 @@ defmodule Unpoly do
       true
     end
   end
+
+  # Parse HTTP date format (RFC 7231)
+  # Examples: "Mon, 15 Jan 2024 10:30:00 GMT"
+  defp parse_http_date(date_string) do
+    # HTTP dates are in IMF-fixdate format: "Day, DD Mon YYYY HH:MM:SS GMT"
+    # We'll use a simple regex parser since Elixir doesn't have built-in HTTP date parsing
+    case Regex.run(
+           ~r/^[A-Za-z]{3}, (\d{2}) ([A-Za-z]{3}) (\d{4}) (\d{2}):(\d{2}):(\d{2}) GMT$/,
+           date_string
+         ) do
+      [_, day, month_name, year, hour, minute, second] ->
+        month = month_name_to_number(month_name)
+
+        if month do
+          {:ok, datetime} =
+            DateTime.new(
+              Date.new!(String.to_integer(year), month, String.to_integer(day)),
+              Time.new!(
+                String.to_integer(hour),
+                String.to_integer(minute),
+                String.to_integer(second)
+              ),
+              "Etc/UTC"
+            )
+
+          datetime
+        else
+          nil
+        end
+
+      _ ->
+        nil
+    end
+  rescue
+    _ -> nil
+  end
+
+  defp month_name_to_number("Jan"), do: 1
+  defp month_name_to_number("Feb"), do: 2
+  defp month_name_to_number("Mar"), do: 3
+  defp month_name_to_number("Apr"), do: 4
+  defp month_name_to_number("May"), do: 5
+  defp month_name_to_number("Jun"), do: 6
+  defp month_name_to_number("Jul"), do: 7
+  defp month_name_to_number("Aug"), do: 8
+  defp month_name_to_number("Sep"), do: 9
+  defp month_name_to_number("Oct"), do: 10
+  defp month_name_to_number("Nov"), do: 11
+  defp month_name_to_number("Dec"), do: 12
+  defp month_name_to_number(_), do: nil
 end
