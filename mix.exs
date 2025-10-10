@@ -1,7 +1,7 @@
 defmodule Unpoly.MixProject do
   use Mix.Project
 
-  @version "1.3.0"
+  @version "2.0.0"
   @description "Plug adapter for Unpoly, the unobtrusive JavaScript framework."
   @source_url "https://github.com/webstronauts/ex_unpoly"
 
