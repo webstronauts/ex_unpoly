@@ -13,7 +13,7 @@ To use Unpoly, you can add it to your application's dependencies.
 ```elixir
 def deps do
   [
-    {:unpoly, "~> 2.0"}
+    {:unpoly, "~> 3.0"}
   ]
 end
 ```
