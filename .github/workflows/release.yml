@@ -35,7 +35,13 @@ jobs:
           mix hex.publish --yes
         env:
           HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+      - uses: TriPSs/conventional-changelog-action@v5
+        id: changelog
+        with:
+          github-token: ${{ secrets.github_token }}
+          version-file: "./mix.exs"
+          skip-bump: true
       - uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          body: ${{ steps.changelog.outputs.changelog }}
           make_latest: true
