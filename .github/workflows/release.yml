@@ -35,7 +35,7 @@ jobs:
           mix hex.publish --yes
         env:
           HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
-      - uses: TriPSs/conventional-changelog-action@v5
+      - uses: TriPSs/conventional-changelog-action@v6
         id: changelog
         with:
           github-token: ${{ secrets.github_token }}
