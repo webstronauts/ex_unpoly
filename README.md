@@ -6,6 +6,13 @@
 
 A Plug adapter and helpers for Unpoly, the unobtrusive JavaScript framework.
 
+---
+
+<img src="https://webstronauts.com/images/logo-circle.svg?foo=bar" height="16" alt="" />  Built by
+ <b><a href="https://webstronauts.com/?utm_source=ex_unpoly&utm_campaign=readme-button&utm_medium=github">The Webstronauts</a></b>, go-to agency for <b>challenging ideas</b> and <b>ambitious organisations</b>.
+
+---
+
 ## Installation
 
 To use Unpoly, you can add it to your application's dependencies.
