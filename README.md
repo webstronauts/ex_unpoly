@@ -30,6 +30,23 @@ defmodule MyApp.Endpoint do
 end
 ```
 
+### Phoenix Components
+
+If you're using Phoenix Components (HEEx templates), you'll need to configure the global attribute prefixes to allow `up-` attributes on HTML elements. Add the following to your `lib/my_app_web.ex` file:
+
+```elixir
+def html do
+  quote do
+    use Phoenix.Component, global_prefixes: ~w(up-)
+    # ... rest of your configuration
+  end
+end
+```
+
+This tells Phoenix.Component to accept attributes with the `up-` prefix (like `up-target`, `up-layer`, etc.) in your function components. See the [Phoenix.Component documentation](https://hexdocs.pm/phoenix_live_view/Phoenix.Component.html#module-custom-global-attribute-prefixes) for more details.
+
+---
+
 To find out more, head to the [online documentation]([https://hexdocs.pm/ex_unpoly).
 
 ## Changelog
