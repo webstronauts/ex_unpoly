@@ -56,7 +56,8 @@ defmodule Unpoly.MixProject do
     [
       maintainers: ["Robin van der Vleuten"],
       licenses: ["MIT"],
-      links: %{"GitHub" => @source_url}
+      links: %{"GitHub" => @source_url},
+      files: ~w(lib .formatter.exs mix.exs README.md LICENSE CHANGELOG.md usage-rules.md)
     ]
   end
 
