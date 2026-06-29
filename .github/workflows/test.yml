@@ -21,7 +21,7 @@ jobs:
             otp: 27.x
             lint: lint
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
       - uses: erlef/setup-beam@v1.24.0
         with:
           otp-version: ${{ matrix.otp }}

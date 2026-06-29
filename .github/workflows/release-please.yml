@@ -28,7 +28,7 @@ jobs:
     env:
       MIX_ENV: dev
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
       - uses: erlef/setup-beam@v1.24.0
         id: beam
         with:
