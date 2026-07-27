@@ -22,7 +22,7 @@ jobs:
             lint: lint
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: erlef/setup-beam@v1.24.0
+      - uses: erlef/setup-beam@v1.24.1
         with:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
